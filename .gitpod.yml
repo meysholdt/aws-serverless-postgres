@@ -1,2 +1,7 @@
 image:
   file: .gitpod.Dockerfile
+
+tasks:
+  - name: Postgres
+    command: |
+      source db-connect.sh

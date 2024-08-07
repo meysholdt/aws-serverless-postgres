@@ -1,0 +1,75 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Aurora Serverless v2 PostgreSQL-compatible database with public access'
+
+Parameters:
+  DBName:
+    Type: String
+    Default: mydb
+  DBUsername:
+    Type: String
+    Default: dbadmin
+  DBPassword:
+    Type: String
+    NoEcho: true
+  VPCID:
+    Type: String
+    Default: vpc-039483d918cfc8f2b
+  PublicSubnet1ID:
+    Type: String
+    Default: subnet-08a6d3dfb882c7504
+  PublicSubnet2ID:
+    Type: String
+    Default: subnet-0230234d33a4567e9
+
+Resources:
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Public Subnet group for Aurora Serverless
+      SubnetIds:
+        - !Ref PublicSubnet1ID
+        - !Ref PublicSubnet2ID
+
+  DBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Aurora Serverless with public access
+      VpcId: !Ref VPCID
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: 0.0.0.0/0
+
+  AuroraServerlessCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      Engine: aurora-postgresql
+      EngineVersion: 13.9
+      EngineMode: provisioned
+      ServerlessV2ScalingConfiguration:
+        MinCapacity: 0.5
+        MaxCapacity: 16
+      DatabaseName: !Ref DBName
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      VpcSecurityGroupIds:
+        - !Ref DBSecurityGroup
+
+  AuroraServerlessInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref AuroraServerlessCluster
+      DBInstanceClass: db.serverless
+      Engine: aurora-postgresql
+      PubliclyAccessible: true
+
+Outputs:
+  ClusterEndpoint:
+    Description: Aurora Serverless Cluster Endpoint
+    Value: !GetAtt AuroraServerlessCluster.Endpoint.Address
+
+  Port:
+    Description: Aurora Serverless Port
+    Value: !GetAtt AuroraServerlessCluster.Endpoint.Port
