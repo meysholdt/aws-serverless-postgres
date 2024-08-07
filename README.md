@@ -1,6 +1,7 @@
 # aws-serverless-postgres
 
 ### This Example
+* Choses AWS Aurora Serverless for cloud-cost reasons. Choosing a classic Postgres DB via AWS's RDS is another option. 
 * how to create a Postgres Database in AWS using Aurora Serverless
 * how to fuly automatically conect to the database
 
